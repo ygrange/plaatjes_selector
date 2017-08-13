@@ -20,9 +20,14 @@ path = "test_fotos/DSC01299.jpg"
 
 image = ImageTk.PhotoImage(Image.open(path))
 image_content = Tk.Label(gui_window, image = image)
-image_content.pack(side = "bottom", fill = "none", expand = "yes")
+image_content.pack(side = "top", fill = "none", expand = "yes")
 
-button_bewaar = Tk.Button(gui_window, text = 'bewaar', command = bewaar)
-button_bewaar_niet = Tk.Button(gui_window, text = 'bewaar niet', command = bewaar_niet)
+button_bewaar = Tk.Button(gui_window, text = 'bewaar', command = lambda: bewaar(path))
+button_bewaar_niet = Tk.Button(gui_window, text = 'bewaar niet', command = lambda: bewaar_niet(path))
 
+button_bewaar.pack(side=Tk.LEFT)
+button_bewaar_niet.pack(side=Tk.RIGHT)
+
+gui_window.bind("j", lambda event: bewaar(path))
+gui_window.bind("n", lambda event: bewaar_niet(path))
 gui_window.mainloop()
