@@ -1,33 +1,77 @@
 #!/usr/bin/env python2.7
 
 import Tkinter as Tk
+import os
+import errno
 
 from PIL import ImageTk, Image
 
-def bewaar(aa):
-    print "Bewaar %s"%aa
+class GUI(object):
+    def __init__(self, bronpad, bewaardoelpad):
+        self.bronpad = bronpad
+        self.bewaardoelpad = bewaardoelpad
+        self.bestandslijst = os.listdir(bronpad)
+        self.plaatje = None
+        try:
+            os.makedirs(bewaardoelpad)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+        self.scherm = Tk.Tk()
+        self.vul_scherm()
+        self.volgende()
+        self.scherm.mainloop()
 
-def bewaar_niet(aa):
-    print "Bewaar %s niet"%aa
+    def vul_scherm(self):
+        self.scherm.configure(background='lightblue')
+        self.scherm.title("Image mover")
+        self.scherm.geometry("1000x800")
+        self.plaatje_container = Tk.Label(self.scherm)
+        self.plaatje_container.pack(side = "top", fill = "none", expand = "yes")
+        self.knop_bewaar = Tk.Button(self.scherm, text = 'bewaar', command = self.bewaar)
+        self.knop_bewaar_niet = Tk.Button(self.scherm, text = 'bewaar niet', command = self.bewaar_niet)
+        self.knop_bewaar.pack(side=Tk.LEFT)
+        self.knop_bewaar_niet.pack(side=Tk.RIGHT)
+        self.scherm.bind("j", self.bewaar)
+        self.scherm.bind("n", self.bewaar_niet)
 
 
-gui_window = Tk.Tk()
-gui_window.configure(background='lightblue')
-gui_window.title("Image mover")
-gui_window.geometry("1200x600")
+    def volgende(self):
+        try:
+            plaatje_bestand = self.bestandslijst.pop(0)
+        except IndexError:
+            self.plaatje_container.img=''
+            self.plaatje_container.configure(image='')
+            self.plaatje_container.configure(text="Klaar hoor!")
+            self.knop_bewaar.configure(state=Tk.DISABLED)
+            self.knop_bewaar_niet.configure(state=Tk.DISABLED)
+            self.scherm.unbind("j")
+            self.scherm.unbind("n")
+            return
+        plaatje_pad = os.path.join(self.bronpad, plaatje_bestand)
+        self.plaatje = os.path.abspath(plaatje_pad)
+        plaatje_imob = Image.open(self.plaatje)
+        plaatje_object = ImageTk.PhotoImage(plaatje_imob)
+        self.plaatje_container.img = plaatje_object
+        self.plaatje_container.configure(image=plaatje_object)
+        
+        self.scherm.mainloop()
 
-path = "test_fotos/DSC01299.jpg"
 
-image = ImageTk.PhotoImage(Image.open(path))
-image_content = Tk.Label(gui_window, image = image)
-image_content.pack(side = "top", fill = "none", expand = "yes")
+    def bewaar(self, event=None):
+        bestandsnaam = os.path.basename(self.plaatje)
+        doelbestand = os.path.join(self.bewaardoelpad, bestandsnaam)
+        print "Bewaar %s"%self.plaatje
+        os.rename(self.plaatje, doelbestand)
+        self.volgende()
 
-button_bewaar = Tk.Button(gui_window, text = 'bewaar', command = lambda: bewaar(path))
-button_bewaar_niet = Tk.Button(gui_window, text = 'bewaar niet', command = lambda: bewaar_niet(path))
+    def bewaar_niet(self, event=None):
+        print "Bewaar %s niet"%self.plaatje
+        self.volgende()
 
-button_bewaar.pack(side=Tk.LEFT)
-button_bewaar_niet.pack(side=Tk.RIGHT)
 
-gui_window.bind("j", lambda event: bewaar(path))
-gui_window.bind("n", lambda event: bewaar_niet(path))
-gui_window.mainloop()
+bronpad = "./test_fotos"
+bewaardoelpad = "./test_fotos_bewaar"
+
+run_gui = GUI(bronpad, bewaardoelpad)
+
