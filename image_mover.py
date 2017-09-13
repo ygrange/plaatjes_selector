@@ -67,6 +67,7 @@ class GUI(object):
         plaatje_pad = os.path.join(self.bronpad, plaatje_bestand)
         self.plaatje = os.path.abspath(plaatje_pad)
         plaatje_imob = Image.open(self.plaatje)
+        plaatje_imob.thumbnail((800,700), Image.ANTIALIAS)
         plaatje_object = ImageTk.PhotoImage(plaatje_imob)
         self.plaatje_container.img = plaatje_object
         self.plaatje_container.configure(image=plaatje_object)
