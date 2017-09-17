@@ -23,10 +23,13 @@ import errno
 from PIL import ImageTk, Image
 
 class GUI(object):
-    def __init__(self, bronpad, bewaardoelpad):
+    def __init__(self, bronpad, bewaardoelpad, twijfelpad, nietbewaardoelpad):
         self.bronpad = bronpad
         self.bewaardoelpad = bewaardoelpad
+        self.twijfelpad = twijfelpad
+        self.nietbewaardoelpad = nietbewaardoelpad
         self.bestandslijst = os.listdir(bronpad)
+        self.dummyplaatje = "X.png"
         self.plaatje = None
         try:
             os.makedirs(bewaardoelpad)
@@ -66,13 +69,20 @@ class GUI(object):
             return
         plaatje_pad = os.path.join(self.bronpad, plaatje_bestand)
         self.plaatje = os.path.abspath(plaatje_pad)
-        plaatje_imob = Image.open(self.plaatje)
-        plaatje_imob.thumbnail((800,700), Image.ANTIALIAS)
-        plaatje_object = ImageTk.PhotoImage(plaatje_imob)
-        self.plaatje_container.img = plaatje_object
-        self.plaatje_container.configure(image=plaatje_object)
+        try:
+            plaatje_imob = Image.open(self.plaatje)
+        except IOError:
+            plaatje_imob = Image.open(self.dummyplaatje)
+        try:
+            plaatje_imob.thumbnail((800,700), Image.ANTIALIAS)
+        except IOError:
+            self.twijfel()
+        else:
+            plaatje_object = ImageTk.PhotoImage(plaatje_imob)
+            self.plaatje_container.img = plaatje_object
+            self.plaatje_container.configure(image=plaatje_object)
         
-        self.scherm.mainloop()
+#        self.scherm.mainloop()
 
 
     def bewaar(self, event=None):
@@ -81,14 +91,26 @@ class GUI(object):
         print "Bewaar %s"%self.plaatje
         os.rename(self.plaatje, doelbestand)
         self.volgende()
+   
+    def twijfel(self):
+        bestandsnaam = os.path.basename(self.plaatje)
+        doelbestand = os.path.join(self.twijfelpad, bestandsnaam)
+        print "Twijfel over %s"%self.plaatje
+        os.rename(self.plaatje, doelbestand)
+        self.volgende()
 
     def bewaar_niet(self, event=None):
+        bestandsnaam = os.path.basename(self.plaatje)
+        doelbestand = os.path.join(self.nietbewaardoelpad, bestandsnaam)
         print "Bewaar %s niet"%self.plaatje
+        os.rename(self.plaatje, doelbestand)
         self.volgende()
 
 
-bronpad = "./test_fotos"
-bewaardoelpad = "./test_fotos_bewaar"
+bronpad = "/Users/ygrange/jpg"
+bewaardoelpad = "/Users/ygrange/Desktop/fotos oude laptop"
+twijfelpad = "/Users/ygrange/jpg_twijfel"
+nietbewaardoelpad = "/Users/ygrange/jpg_nee"
 
-run_gui = GUI(bronpad, bewaardoelpad)
+run_gui = GUI(bronpad, bewaardoelpad, twijfelpad, nietbewaardoelpad)
 
